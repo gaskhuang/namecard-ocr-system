@@ -1,0 +1,38 @@
+# Web 框架
+Flask==2.3.3
+Werkzeug==3.1.3
+Jinja2==3.1.6
+itsdangerous==2.2.0
+click==8.2.1
+streamlit==1.27.2
+flask-cors==6.0.0
+
+# Google API 相關
+google-cloud-vision==3.4.5
+google-auth==2.23.3
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.106.0
+gspread==5.12.0
+google-generativeai==0.3.1
+
+# 郵件相關
+python-dotenv==1.0.0
+email-validator==2.1.0.post1
+
+# 工具與輔助套件
+Pillow==10.0.1
+pandas==2.3.0
+numpy==1.26.4
+requests==2.32.3
+python-dateutil==2.9.0.post0
+pytest==7.3.1
+
+# 額外依賴
+pyarrow==20.0.0
+importlib-metadata==6.11.0
+typing-extensions==4.14.0
+tzlocal==5.3.1
+validators==0.35.0
+blinker==1.9.0
+setuptools==80.9.0 

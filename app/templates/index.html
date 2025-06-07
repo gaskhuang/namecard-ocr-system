@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名片OCR與客戶開發信系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .hidden {
+            display: none;
+        }
+        .step-container {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+        }
+        .step-title {
+            margin-bottom: 1rem;
+            color: #0d6efd;
+        }
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 1rem;
+        }
+        .loading {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="text-center mb-5">
+            <h1>名片OCR與客戶開發信系統</h1>
+            <p class="lead">上傳名片圖片，自動產生客戶開發信</p>
+        </header>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <!-- 步驟1: 上傳名片 -->
+                <div id="step1" class="step-container">
+                    <h2 class="step-title">步驟1: 上傳名片圖片</h2>
+                    <form id="upload-form">
+                        <div class="mb-3">
+                            <label for="card-image" class="form-label">選擇名片圖片 (支援 jpg, png)</label>
+                            <input type="file" class="form-control" id="card-image" accept=".jpg,.jpeg,.png" required>
+                        </div>
+                        <div id="image-preview" class="hidden">
+                            <img id="preview-image" src="" alt="名片預覽">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">上傳並辨識</button>
+                    </form>
+                    <div id="upload-loading" class="loading hidden">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>正在上傳並辨識名片...</p>
+                    </div>
+                </div>
+
+                <!-- 步驟2: 確認名片資訊 -->
+                <div id="step2" class="step-container hidden">
+                    <h2 class="step-title">步驟2: 確認名片資訊</h2>
+                    <form id="card-info-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company-name" class="form-label">公司名稱</label>
+                                <input type="text" class="form-control" id="company-name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tax-id" class="form-label">統一編號</label>
+                                <input type="text" class="form-control" id="tax-id">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="person-name" class="form-label">聯絡人姓名</label>
+                                <input type="text" class="form-control" id="person-name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">職稱</label>
+                                <input type="text" class="form-control" id="title">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">電話</label>
+                                <input type="text" class="form-control" id="phone">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="mobile" class="form-label">手機</label>
+                                <input type="text" class="form-control" id="mobile">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">地址</label>
+                            <input type="text" class="form-control" id="address">
+                        </div>
+                        <button type="submit" class="btn btn-primary">確認並分析公司資訊</button>
+                    </form>
+                    <div id="analyze-loading" class="loading hidden">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>正在分析公司資訊...</p>
+                    </div>
+                </div>
+
+                <!-- 步驟3: 輸入自己公司資訊 -->
+                <div id="step3" class="step-container hidden">
+                    <h2 class="step-title">步驟3: 輸入自己公司資訊</h2>
+                    <div class="mb-4">
+                        <h4>目標公司分析結果</h4>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title" id="target-company-name"></h5>
+                                <p class="card-text" id="target-company-profile"></p>
+                                <p><strong>公司類型:</strong> <span id="target-company-type"></span></p>
+                                <p><strong>產業:</strong> <span id="target-company-industry"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="my-company-form">
+                        <div class="mb-3">
+                            <label for="my-company-name" class="form-label">您的公司名稱</label>
+                            <input type="text" class="form-control" id="my-company-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my-name" class="form-label">您的姓名</label>
+                            <input type="text" class="form-control" id="my-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my-title" class="form-label">您的職稱</label>
+                            <input type="text" class="form-control" id="my-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my-contact" class="form-label">您的聯絡方式</label>
+                            <input type="text" class="form-control" id="my-contact" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my-company-intro" class="form-label">您的公司簡介</label>
+                            <textarea class="form-control" id="my-company-intro" rows="5" required placeholder="請簡述您的公司業務、產品或服務特色，以便生成更精準的開發信"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">產生開發信</button>
+                    </form>
+                    <div id="generate-loading" class="loading hidden">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>正在產生客戶開發信...</p>
+                    </div>
+                </div>
+
+                <!-- 步驟4: 預覽並發送開發信 -->
+                <div id="step4" class="step-container hidden">
+                    <h2 class="step-title">步驟4: 預覽並發送開發信</h2>
+                    <div class="mb-3">
+                        <label for="email-subject" class="form-label">郵件主旨</label>
+                        <input type="text" class="form-control" id="email-subject" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email-content" class="form-label">郵件內容</label>
+                        <textarea class="form-control" id="email-content" rows="10" readonly></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipient-email" class="form-label">收件人 Email</label>
+                        <input type="email" class="form-control" id="recipient-email">
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button id="edit-email-btn" class="btn btn-secondary">編輯郵件</button>
+                        <button id="send-email-btn" class="btn btn-success">發送郵件</button>
+                    </div>
+                    <div id="send-loading" class="loading hidden">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>正在發送郵件...</p>
+                    </div>
+                </div>
+
+                <!-- 結果通知 -->
+                <div id="result-alert" class="alert alert-success mt-4 hidden" role="alert">
+                    郵件已成功發送！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認發送對話框 -->
+    <div class="modal fade" id="confirmSendModal" tabindex="-1" aria-labelledby="confirmSendModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmSendModalLabel">確認發送</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    確定要發送此開發信嗎？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirm-send-btn">確認發送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全域變數
+        let currentImagePath = '';
+        let targetCompanyData = {};
+        let emailData = {};
+        
+        // DOM 載入完成後執行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 步驟1: 上傳名片
+            const uploadForm = document.getElementById('upload-form');
+            const cardImageInput = document.getElementById('card-image');
+            const imagePreview = document.getElementById('image-preview');
+            const previewImage = document.getElementById('preview-image');
+            
+            // 圖片預覽
+            cardImageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        imagePreview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            
+            // 上傳表單提交
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!cardImageInput.files || !cardImageInput.files[0]) {
+                    alert('請選擇名片圖片');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', cardImageInput.files[0]);
+                
+                // 顯示載入中
+                document.getElementById('upload-loading').classList.remove('hidden');
+                
+                // 上傳圖片
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    currentImagePath = data.path;
+                    
+                    // 處理 OCR
+                    return fetch('/api/ocr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ image_path: data.path })
+                    });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // 填充表單
+                    document.getElementById('company-name').value = data.data.company_name || '';
+                    document.getElementById('tax-id').value = data.data.tax_id || '';
+                    document.getElementById('person-name').value = data.data.person_name || '';
+                    document.getElementById('title').value = data.data.title || '';
+                    document.getElementById('phone').value = data.data.phone || '';
+                    document.getElementById('mobile').value = data.data.mobile || '';
+                    document.getElementById('email').value = data.data.email || '';
+                    document.getElementById('address').value = data.data.address || '';
+                    
+                    // 隱藏步驟1，顯示步驟2
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                    
+                    // 隱藏載入中
+                    document.getElementById('upload-loading').classList.add('hidden');
+                })
+                .catch(error => {
+                    alert('錯誤: ' + error.message);
+                    document.getElementById('upload-loading').classList.add('hidden');
+                });
+            });
+            
+            // 步驟2: 確認名片資訊
+            const cardInfoForm = document.getElementById('card-info-form');
+            
+            cardInfoForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const companyName = document.getElementById('company-name').value;
+                const taxId = document.getElementById('tax-id').value;
+                const address = document.getElementById('address').value;
+                
+                if (!companyName) {
+                    alert('請輸入公司名稱');
+                    return;
+                }
+                
+                // 顯示載入中
+                document.getElementById('analyze-loading').classList.remove('hidden');
+                
+                // 分析公司資訊
+                fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        company_name: companyName,
+                        tax_id: taxId,
+                        address: address
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    targetCompanyData = data.data;
+                    
+                    // 填充分析結果
+                    document.getElementById('target-company-name').textContent = companyName;
+                    document.getElementById('target-company-profile').textContent = data.data.company_profile;
+                    document.getElementById('target-company-type').textContent = data.data.company_type;
+                    document.getElementById('target-company-industry').textContent = data.data.industry;
+                    
+                    // 隱藏步驟2，顯示步驟3
+                    document.getElementById('step2').classList.add('hidden');
+                    document.getElementById('step3').classList.remove('hidden');
+                    
+                    // 隱藏載入中
+                    document.getElementById('analyze-loading').classList.add('hidden');
+                })
+                .catch(error => {
+                    alert('錯誤: ' + error.message);
+                    document.getElementById('analyze-loading').classList.add('hidden');
+                });
+            });
+            
+            // 步驟3: 輸入自己公司資訊
+            const myCompanyForm = document.getElementById('my-company-form');
+            
+            myCompanyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const myCompanyName = document.getElementById('my-company-name').value;
+                const myName = document.getElementById('my-name').value;
+                const myTitle = document.getElementById('my-title').value;
+                const myContact = document.getElementById('my-contact').value;
+                const myCompanyIntro = document.getElementById('my-company-intro').value;
+                
+                if (!myCompanyName || !myCompanyIntro) {
+                    alert('請填寫公司名稱和公司簡介');
+                    return;
+                }
+                
+                // 顯示載入中
+                document.getElementById('generate-loading').classList.remove('hidden');
+                
+                // 產生開發信
+                fetch('/api/generate-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        target_company: {
+                            name: document.getElementById('company-name').value,
+                            profile: targetCompanyData.company_profile,
+                            type: targetCompanyData.company_type,
+                            industry: targetCompanyData.industry,
+                            contact_person: document.getElementById('person-name').value,
+                            title: document.getElementById('title').value
+                        },
+                        my_company: {
+                            name: myCompanyName,
+                            profile: myCompanyIntro,
+                            contact_person: myName,
+                            title: myTitle,
+                            contact: myContact
+                        }
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    emailData = data.data;
+                    
+                    // 填充郵件內容
+                    document.getElementById('email-subject').value = data.data.subject;
+                    document.getElementById('email-content').value = data.data.content;
+                    document.getElementById('recipient-email').value = document.getElementById('email').value;
+                    
+                    // 隱藏步驟3，顯示步驟4
+                    document.getElementById('step3').classList.add('hidden');
+                    document.getElementById('step4').classList.remove('hidden');
+                    
+                    // 隱藏載入中
+                    document.getElementById('generate-loading').classList.add('hidden');
+                })
+                .catch(error => {
+                    alert('錯誤: ' + error.message);
+                    document.getElementById('generate-loading').classList.add('hidden');
+                });
+            });
+            
+            // 步驟4: 預覽並發送開發信
+            const editEmailBtn = document.getElementById('edit-email-btn');
+            const sendEmailBtn = document.getElementById('send-email-btn');
+            const confirmSendBtn = document.getElementById('confirm-send-btn');
+            const confirmSendModal = new bootstrap.Modal(document.getElementById('confirmSendModal'));
+            
+            // 編輯郵件
+            editEmailBtn.addEventListener('click', function() {
+                document.getElementById('email-subject').readOnly = false;
+                document.getElementById('email-content').readOnly = false;
+            });
+            
+            // 發送郵件
+            sendEmailBtn.addEventListener('click', function() {
+                const recipientEmail = document.getElementById('recipient-email').value;
+                
+                if (!recipientEmail) {
+                    alert('請輸入收件人 Email');
+                    return;
+                }
+                
+                // 顯示確認對話框
+                confirmSendModal.show();
+            });
+            
+            // 確認發送
+            confirmSendBtn.addEventListener('click', function() {
+                // 隱藏確認對話框
+                confirmSendModal.hide();
+                
+                // 顯示載入中
+                document.getElementById('send-loading').classList.remove('hidden');
+                
+                // 發送郵件
+                fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('recipient-email').value,
+                        subject: document.getElementById('email-subject').value,
+                        content: document.getElementById('email-content').value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // 顯示成功訊息
+                    document.getElementById('result-alert').classList.remove('hidden');
+                    
+                    // 隱藏載入中
+                    document.getElementById('send-loading').classList.add('hidden');
+                    
+                    // 5秒後隱藏成功訊息
+                    setTimeout(function() {
+                        document.getElementById('result-alert').classList.add('hidden');
+                    }, 5000);
+                })
+                .catch(error => {
+                    alert('錯誤: ' + error.message);
+                    document.getElementById('send-loading').classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,48 @@
+<context>
+# Overview  
+本專案是一個自動化名片資訊處理與客戶開發信產生系統。用戶上傳名片圖片後，系統自動辨識名片內容，將資訊存入 Google Sheet，並自動搜尋公司相關資料，分析公司簡介與類型，最後根據雙方公司資訊自動產生並寄送客戶開發信。
+
+# Core Features  
+- 圖片上傳與 Google OCR 文字辨識
+- 名片資訊自動分欄存入 Google Sheet
+- 公司資訊自動 Google 搜尋
+- Claude API 分析公司簡介與類型
+- 用戶輸入自己公司介紹
+- Claude API 產生專屬客戶開發信（含標題與內容）
+- Gmail API 寄送開發信，寄出前 Yes/No 確認
+
+# User Experience  
+- 用戶上傳名片圖片
+- 系統自動處理並顯示辨識結果
+- 用戶可補充/修正公司資訊
+- 用戶輸入自己公司介紹
+- 預覽自動產生的開發信，確認後寄出
+</context>
+<PRD>
+# Technical Architecture  
+- Python Flask/Streamlit Web 前端
+- Google Cloud Vision API（OCR）
+- Google Sheets API
+- Google Search API
+- Claude API（公司分析、信件產生）
+- Gmail API（信件寄送）
+
+# Development Roadmap  
+- 圖片上傳與 OCR
+- Google Sheet 整合
+- Google Search API 串接
+- Claude API 串接與分析
+- 用戶互動介面
+- Gmail API 寄信與確認
+
+# Logical Dependency Chain
+1. OCR → 2. Google Sheet → 3. Google Search → 4. Claude 分析 → 5. 用戶輸入 → 6. Claude 產信 → 7. Gmail 寄信
+
+# Risks and Mitigations  
+- API 金鑰管理
+- OCR 辨識錯誤（允許用戶修正）
+- Claude API 回應品質（可多次產生/修正）
+
+# Appendix  
+- 需申請 Google Cloud、Claude API、Gmail API 金鑰
+</PRD>

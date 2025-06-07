@@ -75,4 +75,4 @@ namecard-system/
 
 ## 授權
 
-本專案採用 MIT 授權條款 - 詳見 LICENSE 檔案 
+本專案採用 MIT 授權條款 - 詳見 LICENSE 檔案

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>名片OCR與客戶開發信系統</title>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0;URL='https://namecard-ocr-system.streamlit.app/'" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+    <script>
+    // Firebase配置
+    const firebaseConfig = {
+      apiKey: "AIzaSyBJQEoasQOFFeE4vvT_T2vgk6MFo2LZZ9o",
+      authDomain: "namecard-ocr-system.firebaseapp.com",
+      projectId: "namecard-ocr-system",
+      storageBucket: "namecard-ocr-system.firebasestorage.app",
+      messagingSenderId: "615261462909",
+      appId: "1:615261462909:web:dc900109a8fb629b8fac14",
+      measurementId: "G-X7SDJM3NVP"
+    };
+
+    // 初始化Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>名片OCR與客戶開發信系統</h1>
+        <p>正在重定向到Streamlit應用...</p>
+        <p>如果您沒有被自動重定向，請<a href="https://namecard-ocr-system.streamlit.app/">點擊這裡</a>。</p>
+    </div>
+</body>
+</html>

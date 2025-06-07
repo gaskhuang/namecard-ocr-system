@@ -1,0 +1,25 @@
+name: 部署到Firebase
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: 設置Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      
+      - name: 安裝Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: 部署到Firebase
+        run: firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

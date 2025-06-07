@@ -132,11 +132,8 @@ def analyze_company():
         # 使用公司分析模組
         logger.info(f"開始分析公司資訊: {company_name}")
         
-        # 先搜尋公司資訊
-        search_results = company_analyzer.search_company_info(company_name, tax_id, address)
-        
-        # 分析公司資訊
-        result = company_analyzer.analyze_company(company_name, search_results, tax_id, address)
+        # 直接分析公司資訊，不再先搜尋
+        result = company_analyzer.analyze_company(company_name, None, tax_id, address)
         
         if not result:
             return jsonify({
@@ -173,11 +170,22 @@ def generate_email():
         
         result = company_analyzer.generate_email(target_company, my_company)
         
-        if not result:
+        # 檢查結果是否包含錯誤信息
+        if result and 'status' in result and result['status'] == 'error':
+            error_message = result.get('error', '無法生成開發信')
+            logger.error(f"開發信生成失敗: {error_message}")
             return jsonify({
                 'status': 'error',
-                'error': '無法生成開發信'
-            }), 400
+                'error': error_message
+            }), 500
+        
+        # 檢查結果是否有效
+        if not result or not ('subject' in result and 'content' in result):
+            logger.error("開發信生成失敗: 返回格式無效")
+            return jsonify({
+                'status': 'error',
+                'error': '開發信生成失敗: API 返回格式無效'
+            }), 500
         
         logger.info(f"開發信生成成功: {result.get('subject', '')}")
         return jsonify({
@@ -228,4 +236,52 @@ def send_email():
         return jsonify({
             'status': 'error',
             'error': f'郵件發送失敗: {str(e)}'
+        }), 500
+
+@bp.route('/api/analyze-details', methods=['POST'])
+def analyze_company_details():
+    """分析公司詳細資料"""
+    data = request.json
+    if not data or 'company_name' not in data:
+        return jsonify({'error': '缺少公司名稱'}), 400
+    
+    company_name = data['company_name']
+    tax_id = data.get('tax_id', '')
+    address = data.get('address', '')
+    
+    try:
+        # 使用公司分析模組的詳細分析方法
+        logger.info(f"開始分析公司詳細資料: {company_name}")
+        
+        # 分析公司詳細資料
+        result = company_analyzer.analyze_company_details(company_name, tax_id, address)
+        
+        # 檢查結果是否包含錯誤信息
+        if result and 'status' in result and result['status'] == 'error':
+            error_message = result.get('error', '無法分析公司詳細資料')
+            logger.error(f"公司詳細分析失敗: {error_message}")
+            return jsonify({
+                'status': 'error',
+                'error': error_message
+            }), 500
+        
+        # 檢查結果是否有效 - 只需確認有 company_description 字段
+        if not result or 'company_description' not in result:
+            logger.error("公司詳細分析失敗: 返回格式無效")
+            return jsonify({
+                'status': 'error',
+                'error': '公司詳細分析失敗: API 返回格式無效'
+            }), 500
+        
+        logger.info(f"公司詳細分析成功: {company_name}")
+        return jsonify({
+            'status': 'success',
+            'data': result
+        })
+        
+    except Exception as e:
+        logger.error(f"公司詳細分析失敗: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'error': f'公司詳細分析失敗: {str(e)}'
         }), 500 

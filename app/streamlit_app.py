@@ -9,6 +9,7 @@ import io
 import json
 import logging
 from dotenv import load_dotenv
+from app.sheets import sheets_processor  # 從 app 包中導入
 
 # 載入環境變數
 load_dotenv()
@@ -203,6 +204,16 @@ def step2_confirm_card_info():
                         
                         if analyze_data.get("status") == "success":
                             st.session_state.company_data = analyze_data.get("data", {})
+                            
+                            # 保存到Google Sheet
+                            save_result = sheets_processor.save_card_info(
+                                st.session_state.card_data,
+                                st.session_state.company_data
+                            )
+                            
+                            if save_result:
+                                st.success("名片資訊已成功保存到Google Sheet")
+                            
                             st.session_state.step = 3
                             st.rerun()
                         else:
@@ -285,10 +296,15 @@ def step3_input_my_company():
                             st.session_state.step = 4
                             st.rerun()
                         else:
-                            st.error(f"產生開發信失敗: {generate_data.get('error', '未知錯誤')}")
+                            # 直接顯示 API 返回的錯誤信息，不要產生模擬開發信
+                            error_message = generate_data.get('error', '未知錯誤')
+                            st.error(f"產生開發信失敗: {error_message}")
+                            if "API" in error_message or "Gemini" in error_message:
+                                st.warning("Gemini API 呼叫失敗，請檢查 API 密鑰或網絡連接。")
                     
                     except Exception as e:
                         st.error(f"處理錯誤: {str(e)}")
+                        st.warning("請確認網絡連接正常，並且 API 服務運行中。")
 
 def step4_preview_and_send():
     """步驟4: 預覽並發送開發信"""
@@ -356,6 +372,19 @@ def step4_preview_and_send():
                             if send_data.get("status") == "success":
                                 st.session_state.email_sent = True
                                 st.session_state.show_confirm = False
+                                
+                                # 保存開發信資訊到 Google Sheets
+                                try:
+                                    sender_email = os.environ.get('GMAIL_USER', '')  # 從環境變數獲取寄件者郵件
+                                    sheets_processor.update_email_info(
+                                        recipient_email, 
+                                        subject, 
+                                        content, 
+                                        sender_email
+                                    )
+                                except Exception as e:
+                                    logger.error(f"保存開發信資訊失敗: {str(e)}")
+                                
                                 st.success("📧 郵件已成功發送！")
                                 st.balloons()
                             else:

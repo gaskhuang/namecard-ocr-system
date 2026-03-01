@@ -24,7 +24,7 @@ class BusinessCardOCR:
         
         # 檢查是否有設定Google Cloud認證
         credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-        gemini_api_key = os.environ.get('GEMINI_API_KEY', 'REDACTED_GEMINI_KEY')
+        gemini_api_key = os.environ.get('GEMINI_API_KEY')  # Required: set via environment variable
         
         # 初始化Vision API客戶端（作為備用）
         if credentials_path and os.path.exists(credentials_path):

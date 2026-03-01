@@ -15,11 +15,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'dev_secret_key')
 # Google API 配置
 GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 GOOGLE_CLOUD_PROJECT = os.environ.get('GOOGLE_CLOUD_PROJECT')
-GOOGLE_SEARCH_API_KEY = os.environ.get('GOOGLE_SEARCH_API_KEY', 'REDACTED_GOOGLE_SEARCH_KEY')
+GOOGLE_SEARCH_API_KEY = os.environ.get('GOOGLE_SEARCH_API_KEY')  # Required: set via environment variable
 GOOGLE_CUSTOM_SEARCH_ENGINE_ID = os.environ.get('GOOGLE_CUSTOM_SEARCH_ENGINE_ID')
 
 # Gemini API 配置
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'REDACTED_GEMINI_KEY')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')  # Required: set via environment variable
 GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash-preview-05-20')
 
 # Gmail API 配置
